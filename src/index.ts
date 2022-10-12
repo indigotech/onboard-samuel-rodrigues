@@ -5,9 +5,10 @@ import { User } from './entity/User';
 AppDataSource.initialize()
   .then(async () => {
     const user = new User();
-    user.firstName = 'Jonh';
-    user.lastName = 'Doe';
-    user.isActive = true;
+    user.name = 'Jonh Doe';
+    user.email = 'john.doe@email.com';
+    user.password = 'senha123';
+    user.birthdate = '01-01-2000';
     await AppDataSource.manager.save(user);
 
     const users = await AppDataSource.manager.find(User);
