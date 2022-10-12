@@ -1,6 +1,14 @@
-const users = [
+interface UserInput {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  birthdate: string;
+}
+
+const users: UserInput[] = [
   {
-    id: String(Math.random()),
+    id: 0,
     name: 'Jonh Doe',
     email: 'jonh.doe@email.com',
     password: 'senha123',
@@ -17,7 +25,7 @@ export const resolvers = {
   Mutation: {
     createUser: (_, args) => {
       const newUser = {
-        id: String(users.length++),
+        id: users.length++,
         name: args.name,
         email: args.email,
         password: args.password,
