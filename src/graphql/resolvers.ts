@@ -1,3 +1,4 @@
+import { hash } from 'bcrypt';
 import { User } from '../entity/User';
 
 interface UserInput {
@@ -32,11 +33,12 @@ export const resolvers = {
   Mutation: {
     createUser: async (_, args: UserInput) => {
       validators(args);
+      const passwordHash = await hash(args.password, 8);
 
       const newUser = new User();
       newUser.name = args.name;
       newUser.email = args.email;
-      newUser.password = args.password;
+      newUser.password = passwordHash;
       newUser.birthdate = args.birthdate;
 
       await User.save(newUser);
