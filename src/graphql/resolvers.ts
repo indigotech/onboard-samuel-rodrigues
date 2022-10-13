@@ -1,3 +1,5 @@
+import { User } from '../entity/User';
+
 interface UserInput {
   id: number;
   name: string;
@@ -6,33 +8,21 @@ interface UserInput {
   birthdate: string;
 }
 
-const users: UserInput[] = [
-  {
-    id: 0,
-    name: 'Jonh Doe',
-    email: 'jonh.doe@email.com',
-    password: 'senha123',
-    birthdate: '01-01-2000',
-  },
-];
-
 export const resolvers = {
   Query: {
     hello: () => 'Hello, world!',
-    getUsers: () => users,
+    getUsers: async () => await User.find(),
   },
 
   Mutation: {
-    createUser: (_, args) => {
-      const newUser = {
-        id: users.length++,
-        name: args.name,
-        email: args.email,
-        password: args.password,
-        birthdate: args.birthdate,
-      };
+    createUser: async (_, args: UserInput) => {
+      const newUser = new User();
+      newUser.name = args.name;
+      newUser.email = args.email;
+      newUser.password = args.password;
+      newUser.birthdate = args.birthdate;
 
-      users.push(newUser);
+      await User.save(newUser);
       return newUser;
     },
   },

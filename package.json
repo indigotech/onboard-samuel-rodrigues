@@ -4,7 +4,7 @@
   "description": "Projeto de onboard de Samuel Rodrigues",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/apollo-server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,6 +19,7 @@
   "homepage": "https://github.com/indigotech/onboard-samuel-rodrigues#readme",
   "dependencies": {
     "apollo-server": "3.10.2",
+    "dotenv": "^16.0.3",
     "graphql": "15.8.0",
     "pg": "8.8.0",
     "reflect-metadata": "0.1.13",
