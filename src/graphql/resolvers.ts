@@ -8,6 +8,21 @@ interface UserInput {
   birthdate: string;
 }
 
+async function validators(args: UserInput) {
+  const emailAlreadyExists = await User.findOneBy({ email: args.email });
+  console.log(emailAlreadyExists);
+
+  if (emailAlreadyExists) {
+    throw new Error('Email already registered.');
+  }
+
+  const regexPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+
+  if (!regexPassword.test(args.password)) {
+    throw new Error('Invalid password');
+  }
+}
+
 export const resolvers = {
   Query: {
     hello: () => 'Hello, world!',
@@ -16,6 +31,8 @@ export const resolvers = {
 
   Mutation: {
     createUser: async (_, args: UserInput) => {
+      validators(args);
+
       const newUser = new User();
       newUser.name = args.name;
       newUser.email = args.email;
