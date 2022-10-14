@@ -11,13 +11,19 @@ Projeto de onboard de Samuel Rodrigues
 
 ## Steps to run and debug
 
-Primeiramente instale os pacotes necessários utilizando o comando
+Primeiramente instale os pacotes necessários utilizando o comando:
 
 ```bash
 npm i
 ```
 
-depois execute utilizando o comando
+Com o Docker instalado na sua máquina, execute o comando a seguir:
+
+```bash
+docker-compose up -d
+```
+
+Depois execute utilizando o comando:
 
 ```bash
 npm run dev
