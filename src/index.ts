@@ -3,8 +3,8 @@ import { AppDataSource } from './data-source';
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
 
-AppDataSource.initialize()
-  .then(async () => {
+export const server = AppDataSource.initialize()
+  .then(() => {
     const server = new ApolloServer({ typeDefs, resolvers });
 
     server.listen().then(({ url }) => {

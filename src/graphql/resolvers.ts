@@ -30,7 +30,7 @@ export const resolvers = {
   },
 
   Mutation: {
-    createUser: async (_, args: UserInput) => {
+    createUser: async (_: any, args: UserInput) => {
       validators(args);
       const passwordHash = await hash(args.password, 8);
 
