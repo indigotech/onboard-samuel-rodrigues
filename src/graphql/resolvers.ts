@@ -11,7 +11,6 @@ interface UserInput {
 
 async function validators(args: UserInput) {
   const emailAlreadyExists = await User.findOneBy({ email: args.email });
-  console.log(emailAlreadyExists);
 
   if (emailAlreadyExists) {
     throw new Error('Email already registered.');
