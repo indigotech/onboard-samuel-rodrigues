@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { ApolloServer } from 'apollo-server';
 import { AppDataSource } from '../src/data-source';
+import { expect } from 'chai';
 import { resolvers } from '../src/graphql/resolvers';
 import { typeDefs } from '../src/graphql/schema';
 
@@ -16,11 +17,14 @@ describe('query hello', function () {
       .catch((error) => console.log(error))
       .then(done);
   });
-  it('Returning hello:', async function () {
+  it('Returning hello', async function () {
     const query = `query { hello }`;
 
     const connection = axios.create({ baseURL: 'http://localhost:4000/' });
     const result = await connection.post('/graphql', { query });
-    console.table(JSON.stringify(result.data));
+    const queryResponseField = JSON.stringify(result.data.data.hello);
+    console.table(queryResponseField);
+
+    expect(queryResponseField).to.be.eq('"Hello, world!"');
   });
 });

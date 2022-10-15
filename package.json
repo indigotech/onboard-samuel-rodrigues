@@ -19,7 +19,7 @@
   "homepage": "https://github.com/indigotech/onboard-samuel-rodrigues#readme",
   "dependencies": {
     "apollo-server": "3.10.2",
-    "axios": "^1.1.2",
+    "axios": "1.1.2",
     "bcrypt": "5.1.0",
     "graphql": "15.8.0",
     "pg": "8.8.0",
@@ -32,6 +32,7 @@
     "@types/node": "18.8.3",
     "@typescript-eslint/eslint-plugin": "5.39.0",
     "@typescript-eslint/parser": "5.39.0",
+    "chai": "4.3.6",
     "eslint": "8.25.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.2.1",
