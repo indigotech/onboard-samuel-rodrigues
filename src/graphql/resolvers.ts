@@ -1,26 +1,12 @@
 import { hash } from 'bcrypt';
 import { User } from '../entity/User';
+import { validateEmail, validatePassword } from '../validators/validators';
 
-interface UserInput {
-  id: number;
+export interface UserInput {
   name: string;
   email: string;
   password: string;
   birthdate: string;
-}
-
-async function validators(args: UserInput) {
-  const emailAlreadyExists = await User.findOneBy({ email: args.email });
-
-  if (emailAlreadyExists) {
-    throw new Error('Email already registered.');
-  }
-
-  const regexPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
-
-  if (!regexPassword.test(args.password)) {
-    throw new Error('Invalid password');
-  }
 }
 
 export const resolvers = {
@@ -31,7 +17,8 @@ export const resolvers = {
 
   Mutation: {
     createUser: async (_: any, args: UserInput) => {
-      validators(args);
+      validateEmail(args.email);
+      validatePassword(args.password);
       const passwordHash = await hash(args.password, 8);
 
       const newUser = new User();
