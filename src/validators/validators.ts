@@ -8,7 +8,7 @@ export async function validateEmail(email) {
   }
 }
 
-export async function validatePassword(password) {
+export function validatePassword(password) {
   const regexPassword = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
   if (!regexPassword.test(password)) {

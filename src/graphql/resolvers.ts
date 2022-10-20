@@ -16,16 +16,16 @@ export const resolvers = {
   },
 
   Mutation: {
-    createUser: async (_: any, args: UserInput) => {
-      validateEmail(args.email);
-      validatePassword(args.password);
-      const passwordHash = await hash(args.password, 8);
+    createUser: async (_: any, args: { input: UserInput }) => {
+      await validateEmail(args.input.email);
+      validatePassword(args.input.password);
+      const passwordHash = await hash(args.input.password, 8);
 
       const newUser = new User();
-      newUser.name = args.name;
-      newUser.email = args.email;
+      newUser.name = args.input.name;
+      newUser.email = args.input.email;
       newUser.password = passwordHash;
-      newUser.birthdate = args.birthdate;
+      newUser.birthdate = args.input.birthdate;
 
       await User.save(newUser);
       return newUser;

@@ -26,9 +26,9 @@ describe('query hello', function () {
 });
 
 describe('Test createUser', () => {
-  it('Returning user', async () => {
-    const query = `mutation($name: String!, $email: String!, $password: String!, $birthdate: String!) {
-      createUser(name: $name, email: $email, password: $password, birthdate: $birthdate) {
+  it('should insert a user into the database', async () => {
+    const query = `mutation($input: UserInput!) {
+      createUser(input: $input) {
         id
         name
         email
@@ -43,18 +43,15 @@ describe('Test createUser', () => {
       birthdate: '01-01-2000',
     };
 
-    await validateEmail(userInput.email);
-    await validatePassword(userInput.password);
-
-    const result = await connection.post('/graphql', { query, variables: userInput });
-    const queryResponseField = JSON.stringify(result.data.data.createUser);
-    console.table(queryResponseField);
-
+    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
     const user = await User.findOneBy({ email: userInput.email });
 
-    expect(queryResponseField).to.be.eq(
-      `{"id":"${user.id}","name":"${userInput.name}","email":"${userInput.email}","birthdate":"${userInput.birthdate}"}`,
-    );
+    expect(result.data.data.createUser).to.be.deep.eq({
+      id: user.id,
+      name: userInput.name,
+      email: userInput.email,
+      birthdate: userInput.birthdate,
+    });
 
     await User.delete({ email: userInput.email });
   });
