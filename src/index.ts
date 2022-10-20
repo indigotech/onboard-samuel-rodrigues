@@ -1,14 +1,6 @@
-import { ApolloServer } from 'apollo-server';
-import { AppDataSource } from './data-source';
-import { resolvers } from './graphql/resolvers';
-import { typeDefs } from './graphql/schema';
+import * as dotenv from 'dotenv';
+import { startServer } from './start-server';
 
-AppDataSource.initialize()
-  .then(async () => {
-    const server = new ApolloServer({ typeDefs, resolvers });
+dotenv.config({ path: `${process.cwd()}/.env` });
 
-    server.listen().then(({ url }) => {
-      console.log(`Server listening at ${url}`);
-    });
-  })
-  .catch((error) => console.log(error));
+startServer();
