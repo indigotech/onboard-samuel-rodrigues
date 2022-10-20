@@ -5,7 +5,7 @@ import { typeDefs } from './graphql/schema';
 
 export async function startServer() {
   createDataSource();
-  AppDataSource.initialize();
+  await AppDataSource.initialize();
   const server = new ApolloServer({ typeDefs, resolvers });
   const { url } = await server.listen({ port: process.env.PORT || 4000 });
   console.log(`Server listening at ${url}`);
