@@ -19,6 +19,7 @@ interface UserInput {
 interface LoginInput {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export const resolvers = {
