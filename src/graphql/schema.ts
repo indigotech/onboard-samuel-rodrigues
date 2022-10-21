@@ -8,6 +8,7 @@ export const typeDefs = gql`
 
   type Mutation {
     createUser(input: UserInput!): User!
+    login(input: LoginInput): Login!
   }
 
   input UserInput {
@@ -22,5 +23,15 @@ export const typeDefs = gql`
     name: String!
     email: String!
     birthdate: String!
+  }
+
+  input LoginInput {
+    email: String!
+    password: String!
+  }
+
+  type Login {
+    user: User
+    token: String
   }
 `;

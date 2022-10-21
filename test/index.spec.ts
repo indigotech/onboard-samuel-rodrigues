@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import { startServer } from '../src/start-server';
 import { User } from '../src/entity/User';
 import { compare } from 'bcrypt';
+
 dotenv.config({ path: './test.env' });
 
 before('Starting server', async () => {
@@ -12,13 +13,12 @@ before('Starting server', async () => {
 
 const connection = axios.create({ baseURL: process.env.APOLLO_SERVER_BASE_URL });
 
-describe('query hello', function () {
-  it('Returning hello', async () => {
+describe('Test query hello:', function () {
+  it('should return a greeting.', async () => {
     const query = `query { hello }`;
 
     const result = await connection.post('/graphql', { query });
     const queryResponseField = JSON.stringify(result.data.data.hello);
-    console.table(queryResponseField);
 
     expect(queryResponseField).to.be.eq('"Hello, world!"');
   });
@@ -91,7 +91,7 @@ describe('Test createUser', () => {
 
     expect(result.data.errors).to.be.deep.eq([
       {
-        message: 'Invalid password',
+        message: 'Invalid password.',
         code: 401,
       },
     ]);
@@ -110,6 +110,67 @@ describe('Test createUser', () => {
     expect(result.data.errors).to.be.deep.eq([
       {
         message: 'Email already registered.',
+        code: 401,
+      },
+    ]);
+  });
+});
+
+describe('Test login:', () => {
+  const query = `mutation($input: LoginInput!) {
+    login(input: $input) {
+      user { id, name, email, birthdate }
+      token
+    }
+  }`;
+
+  it('should autenticate the user.', async () => {
+    const loginInput = {
+      email: 'teste2@email.com',
+      password: 'senha123',
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
+    const user = await User.findOneBy({ email: loginInput.email });
+
+    expect(result.data.data.login).to.be.deep.eq({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        birthdate: user.birthdate,
+      },
+      token: 'the_token',
+    });
+  });
+
+  it('should return an error for trying to sign in with an unregistered email.', async () => {
+    const loginInput = {
+      email: 'teste@email.com',
+      password: 'senha123',
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'This email is not registered.',
+        code: 401,
+      },
+    ]);
+  });
+
+  it('should return an error for trying to sign in with an incorrect password.', async () => {
+    const loginInput = {
+      email: 'teste2@email.com',
+      password: 'senha',
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'Incorrect password.',
         code: 401,
       },
     ]);

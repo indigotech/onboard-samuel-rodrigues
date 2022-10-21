@@ -1,12 +1,23 @@
 import { hash } from 'bcrypt';
 import { User } from '../entity/User';
-import { emailAlreadyExists, validateEmail, validatePassword } from '../validators/validators';
+import {
+  comparePassword,
+  emailAlreadyExists,
+  validateEmail,
+  validateEmailLogin,
+  validatePassword,
+} from '../validators/validators';
 
-export interface UserInput {
+interface UserInput {
   name: string;
   email: string;
   password: string;
   birthdate: string;
+}
+
+interface LoginInput {
+  email: string;
+  password: string;
 }
 
 export const resolvers = {
@@ -30,6 +41,15 @@ export const resolvers = {
 
       await User.save(newUser);
       return newUser;
+    },
+
+    login: async (_: any, args: { input: LoginInput }) => {
+      await validateEmailLogin(args.input.email);
+      const user = await User.findOneBy({ email: args.input.email });
+      await comparePassword(args.input.password, user.password);
+      const token = 'the_token';
+
+      return { user, token };
     },
   },
 };
