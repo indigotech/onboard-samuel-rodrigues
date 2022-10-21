@@ -162,6 +162,9 @@ describe('Test login:', () => {
       },
       token: 'the_token',
     });
+
+    expect(result.data.data.login.token).to.be.a('string');
+    expect(result.data.data.login.token).to.have.lengthOf(128);
   });
 
   it('should return an error for trying to sign in with an unregistered email.', async () => {
@@ -174,7 +177,7 @@ describe('Test login:', () => {
 
     expect(result.data.errors).to.be.deep.eq([
       {
-        message: 'This email is not registered.',
+        message: 'Email or password is incorrect.',
         code: 401,
       },
     ]);
@@ -194,7 +197,7 @@ describe('Test login:', () => {
 
     expect(result.data.errors).to.be.deep.eq([
       {
-        message: 'Incorrect password.',
+        message: 'Email or password is incorrect.',
         code: 401,
       },
     ]);
