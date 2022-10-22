@@ -48,9 +48,9 @@ describe('Test createUser', () => {
 
     expect(result.data.data.createUser).to.be.deep.eq({
       id: user.id,
-      name: userInput.name,
-      email: userInput.email,
-      birthdate: userInput.birthdate,
+      name: user.name && userInput.name,
+      email: user.email && userInput.email,
+      birthdate: user.birthdate && userInput.birthdate,
     });
 
     await User.delete({ email: userInput.email });
