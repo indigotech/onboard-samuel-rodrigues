@@ -25,13 +25,13 @@ describe('query hello', function () {
 });
 
 describe('Test createUser', () => {
-  it('should insert a user into the database', async () => {
-    const query = `mutation($input: UserInput!) {
-      createUser(input: $input) {
-        id, name, email, birthdate
-      }
-    }`;
+  const query = `mutation($input: UserInput!) {
+    createUser(input: $input) {
+      id, name, email, birthdate
+    }
+  }`;
 
+  it('should insert a user into the database', async () => {
     const userInput = {
       name: 'Teste',
       email: 'teste@email.com',
@@ -60,16 +60,8 @@ describe('Test createUser', () => {
 
     await User.delete({ email: userInput.email });
   });
-});
 
-describe('Test createUser with existing email', () => {
   it('should return an error for trying to create a user with email already registered', async () => {
-    const query = `mutation($input: UserInput!) {
-      createUser(input: $input) {
-        id, name, email, birthdate
-      }
-    }`;
-
     const userInput = {
       name: 'Teste',
       email: 'teste2@email.com',
@@ -86,16 +78,8 @@ describe('Test createUser with existing email', () => {
       },
     ]);
   });
-});
 
-describe('Test createUser with invalid password', () => {
   it('should return an error for trying to create a user with a password that does not meet the requirements', async () => {
-    const query = `mutation($input: UserInput!) {
-      createUser(input: $input) {
-        id, name, email, birthdate
-      }
-    }`;
-
     const userInput = {
       name: 'Teste',
       email: 'teste@email.com',

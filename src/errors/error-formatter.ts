@@ -22,6 +22,7 @@ export function formatError(error: GraphQLError) {
     return {
       message: 'Internal Server Error. Something went wrong. Please, try again.',
       code: 500,
+      details: error.message,
     };
   }
 }
