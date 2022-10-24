@@ -47,9 +47,9 @@ describe('Test createUser', () => {
     ).data.data.createUser;
     const user = await User.findOneBy({ email: userInput.email });
 
-    expect(user.name).to.be.eq(result.name);
-    expect(user.email).to.be.eq(result.email);
-    expect(user.birthdate).to.be.eq(result.birthdate);
+    expect(user.name).to.be.eq(userInput.name);
+    expect(user.email).to.be.eq(userInput.email);
+    expect(user.birthdate).to.be.eq(userInput.birthdate);
 
     const passwordMatch = await compare(userInput.password, user.password);
     expect(passwordMatch).to.be.eq(true);
