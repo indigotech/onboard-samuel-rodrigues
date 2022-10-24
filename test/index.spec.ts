@@ -3,8 +3,7 @@ import axios from 'axios';
 import { expect } from 'chai';
 import { startServer } from '../src/start-server';
 import { User } from '../src/entity/User';
-import { validateEmail, validatePassword } from '../src/validators/validators';
-
+import { compare } from 'bcrypt';
 dotenv.config({ path: './test.env' });
 
 before('Starting server', async () => {
@@ -43,14 +42,23 @@ describe('Test createUser', () => {
       birthdate: '01-01-2000',
     };
 
-    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: userInput } })
+    ).data.data.createUser;
     const user = await User.findOneBy({ email: userInput.email });
 
-    expect(result.data.data.createUser).to.be.deep.eq({
+    expect(user.name).to.be.eq(result.name);
+    expect(user.email).to.be.eq(result.email);
+    expect(user.birthdate).to.be.eq(result.birthdate);
+
+    const passwordMatch = await compare(userInput.password, user.password);
+    expect(passwordMatch).to.be.eq(true);
+
+    expect(result).to.be.deep.eq({
       id: user.id,
-      name: user.name && userInput.name,
-      email: user.email && userInput.email,
-      birthdate: user.birthdate && userInput.birthdate,
+      name: user.name,
+      email: user.email,
+      birthdate: user.birthdate,
     });
 
     await User.delete({ email: userInput.email });
