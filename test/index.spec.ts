@@ -61,10 +61,10 @@ describe('Test createUser', () => {
     await User.delete({ email: userInput.email });
   });
 
-  it('should return an error for trying to create a user with email already registered', async () => {
+  it('should return an error for trying to create a user with an email that does not meet the requirements', async () => {
     const userInput = {
       name: 'Teste',
-      email: 'teste2@email.com',
+      email: 'test&@email.com',
       password: 'senha123',
       birthdate: '01-01-2000',
     };
@@ -73,7 +73,7 @@ describe('Test createUser', () => {
 
     expect(result.data.errors).to.be.deep.eq([
       {
-        message: 'Email already registered.',
+        message: 'Invalid email.',
         code: 401,
       },
     ]);
@@ -92,6 +92,24 @@ describe('Test createUser', () => {
     expect(result.data.errors).to.be.deep.eq([
       {
         message: 'Invalid password',
+        code: 401,
+      },
+    ]);
+  });
+
+  it('should return an error for trying to create a user with email already registered', async () => {
+    const userInput = {
+      name: 'Teste',
+      email: 'teste2@email.com',
+      password: 'senha123',
+      birthdate: '01-01-2000',
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'Email already registered.',
         code: 401,
       },
     ]);
