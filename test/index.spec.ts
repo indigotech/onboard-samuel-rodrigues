@@ -25,16 +25,13 @@ describe('query hello', function () {
 });
 
 describe('Test createUser', () => {
-  it('should insert a user into the database', async () => {
-    const query = `mutation($input: UserInput!) {
-      createUser(input: $input) {
-        id
-        name
-        email
-        birthdate
-      }
-    }`;
+  const query = `mutation($input: UserInput!) {
+    createUser(input: $input) {
+      id, name, email, birthdate
+    }
+  }`;
 
+  it('should insert a user into the database', async () => {
     const userInput = {
       name: 'Teste',
       email: 'teste@email.com',
@@ -62,5 +59,59 @@ describe('Test createUser', () => {
     });
 
     await User.delete({ email: userInput.email });
+  });
+
+  it('should return an error for trying to create a user with an email that does not meet the requirements', async () => {
+    const userInput = {
+      name: 'Teste',
+      email: 'test&@email.com',
+      password: 'senha123',
+      birthdate: '01-01-2000',
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'Invalid email.',
+        code: 401,
+      },
+    ]);
+  });
+
+  it('should return an error for trying to create a user with a password that does not meet the requirements', async () => {
+    const userInput = {
+      name: 'Teste',
+      email: 'teste@email.com',
+      password: 'senha',
+      birthdate: '01-01-2000',
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'Invalid password',
+        code: 401,
+      },
+    ]);
+  });
+
+  it('should return an error for trying to create a user with email already registered', async () => {
+    const userInput = {
+      name: 'Teste',
+      email: 'teste2@email.com',
+      password: 'senha123',
+      birthdate: '01-01-2000',
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'Email already registered.',
+        code: 401,
+      },
+    ]);
   });
 });

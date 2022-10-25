@@ -1,6 +1,6 @@
 import { hash } from 'bcrypt';
 import { User } from '../entity/User';
-import { validateEmail, validatePassword } from '../validators/validators';
+import { emailAlreadyExists, validateEmail, validatePassword } from '../validators/validators';
 
 export interface UserInput {
   name: string;
@@ -17,8 +17,9 @@ export const resolvers = {
 
   Mutation: {
     createUser: async (_: any, args: { input: UserInput }) => {
-      await validateEmail(args.input.email);
+      validateEmail(args.input.email);
       validatePassword(args.input.password);
+      await emailAlreadyExists(args.input.email);
       const passwordHash = await hash(args.input.password, 8);
 
       const newUser = new User();
