@@ -3,7 +3,7 @@ import axios from 'axios';
 import { expect } from 'chai';
 import { startServer } from '../src/start-server';
 import { User } from '../src/entity/User';
-import { compare } from 'bcrypt';
+import { compare, hashSync } from 'bcrypt';
 
 dotenv.config({ path: './test.env' });
 
@@ -44,6 +44,8 @@ describe('Test createUser', () => {
     ).data.data.createUser;
     const user = await User.findOneBy({ email: userInput.email });
 
+    await User.delete({ email: userInput.email });
+
     expect(user.name).to.be.eq(userInput.name);
     expect(user.email).to.be.eq(userInput.email);
     expect(user.birthdate).to.be.eq(userInput.birthdate);
@@ -57,8 +59,6 @@ describe('Test createUser', () => {
       email: user.email,
       birthdate: user.birthdate,
     });
-
-    await User.delete({ email: userInput.email });
   });
 
   it('should return an error for trying to create a user with an email that does not meet the requirements', async () => {
@@ -98,14 +98,24 @@ describe('Test createUser', () => {
   });
 
   it('should return an error for trying to create a user with email already registered', async () => {
+    const newUser = new User();
+    newUser.name = 'Teste';
+    newUser.email = 'teste@email.com';
+    newUser.password = 'senha123';
+    newUser.birthdate = '01-01-2000';
+
+    await User.save(newUser);
+
     const userInput = {
       name: 'Teste',
-      email: 'teste2@email.com',
+      email: 'teste@email.com',
       password: 'senha123',
       birthdate: '01-01-2000',
     };
 
     const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+
+    await User.delete({ email: newUser.email });
 
     expect(result.data.errors).to.be.deep.eq([
       {
@@ -124,14 +134,24 @@ describe('Test login:', () => {
     }
   }`;
 
+  const newUser = new User();
+  newUser.name = 'Teste';
+  newUser.email = 'teste@email.com';
+  newUser.password = hashSync('senha123', 8);
+  newUser.birthdate = '01-01-2000';
+
   it('should autenticate the user.', async () => {
+    await User.save(newUser);
+
     const loginInput = {
-      email: 'teste2@email.com',
+      email: 'teste@email.com',
       password: 'senha123',
     };
 
     const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
     const user = await User.findOneBy({ email: loginInput.email });
+
+    await User.delete({ email: newUser.email });
 
     expect(result.data.data.login).to.be.deep.eq({
       user: {
@@ -161,12 +181,16 @@ describe('Test login:', () => {
   });
 
   it('should return an error for trying to sign in with an incorrect password.', async () => {
+    await User.save(newUser);
+
     const loginInput = {
-      email: 'teste2@email.com',
+      email: 'teste@email.com',
       password: 'senha',
     };
 
     const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
+
+    await User.delete({ email: newUser.email });
 
     expect(result.data.errors).to.be.deep.eq([
       {
