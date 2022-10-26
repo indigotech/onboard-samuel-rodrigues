@@ -172,6 +172,38 @@ describe('Test login:', () => {
     expect(payload.exp).to.be.gt(nowInSeconds);
   });
 
+  it('should autenticate the user with extended expiration time.', async () => {
+    await User.save(newUser);
+
+    const loginInput = {
+      email: 'teste@email.com',
+      password: 'senha123',
+      rememberMe: true,
+    };
+
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
+    const user = await User.findOneBy({ email: loginInput.email });
+
+    await User.delete({ email: newUser.email });
+
+    expect(result.data.data.login.user).to.be.deep.eq({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      birthdate: user.birthdate,
+    });
+
+    const payload = verifyToken(result.data.data.login.token);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
+    expect(result.data.data.login.token).to.be.a('string');
+    expect(result.data.data.login.token).to.have.lengthOf(187);
+    expect(payload).to.have.keys(['id', 'iat', 'exp']);
+    expect(payload['id']).to.be.eq(user.id);
+    expect(payload['exp']).to.be.eq(payload['iat'] + 604800);
+    expect(payload['exp']).to.be.gt(nowInSeconds);
+  });
+
   it('should return an error for trying to sign in with an unregistered email.', async () => {
     const loginInput = {
       email: 'teste@email.com',

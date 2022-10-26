@@ -49,7 +49,7 @@ export const resolvers = {
       await validateEmailLogin(args.input.email);
       const user = await User.findOneBy({ email: args.input.email });
       await comparePassword(args.input.password, user.password);
-      const token = generateToken(user.id);
+      const token = generateToken(user.id, args.input.rememberMe);
 
       return { user, token };
     },
