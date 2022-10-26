@@ -8,19 +8,7 @@ import {
   validatePassword,
 } from '../validators/validators';
 import { generateToken } from '../jwt';
-
-interface UserInput {
-  name: string;
-  email: string;
-  password: string;
-  birthdate: string;
-}
-
-interface LoginInput {
-  email: string;
-  password: string;
-  rememberMe?: boolean;
-}
+import { LoginInput, UserInput } from '../interfaces/interfaces';
 
 export const resolvers = {
   Query: {
