@@ -167,9 +167,9 @@ describe('Test login:', () => {
     expect(result.data.data.login.token).to.be.a('string');
     expect(result.data.data.login.token).to.have.lengthOf(187);
     expect(payload).to.have.keys(['id', 'iat', 'exp']);
-    expect(payload['id']).to.be.eq(user.id);
-    expect(payload['exp']).to.be.eq(payload['iat'] + 86400);
-    expect(payload['exp']).to.be.gt(nowInSeconds);
+    expect(payload.id).to.be.eq(user.id);
+    expect(payload.exp).to.be.eq(payload['iat'] + 86400);
+    expect(payload.exp).to.be.gt(nowInSeconds);
   });
 
   it('should return an error for trying to sign in with an unregistered email.', async () => {

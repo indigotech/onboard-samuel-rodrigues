@@ -6,7 +6,6 @@ import {
   validateEmail,
   validateEmailLogin,
   validatePassword,
-  validateToken,
 } from '../validators/validators';
 import { generateToken } from '../jwt';
 
@@ -50,7 +49,6 @@ export const resolvers = {
       const user = await User.findOneBy({ email: args.input.email });
       await comparePassword(args.input.password, user.password);
       const token = generateToken(user.id);
-      validateToken(token, user.id);
 
       return { user, token };
     },
