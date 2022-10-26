@@ -8,18 +8,7 @@ import {
   validatePassword,
 } from '../validators/validators';
 import { generateToken } from '../jwt';
-
-interface UserInput {
-  name: string;
-  email: string;
-  password: string;
-  birthdate: string;
-}
-
-interface LoginInput {
-  email: string;
-  password: string;
-}
+import { LoginInput, UserInput } from '../interfaces/interfaces';
 
 export const resolvers = {
   Query: {
@@ -48,7 +37,7 @@ export const resolvers = {
       await validateEmailLogin(args.input.email);
       const user = await User.findOneBy({ email: args.input.email });
       await comparePassword(args.input.password, user.password);
-      const token = generateToken(user.id);
+      const token = generateToken(user.id, args.input.rememberMe);
 
       return { user, token };
     },
