@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import { startServer } from '../src/start-server';
 import { User } from '../src/entity/User';
 import { compare, hashSync } from 'bcrypt';
+import { verifyToken } from '../src/jwt';
 
 dotenv.config({ path: './test.env' });
 
@@ -153,18 +154,22 @@ describe('Test login:', () => {
 
     await User.delete({ email: newUser.email });
 
-    expect(result.data.data.login).to.be.deep.eq({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        birthdate: user.birthdate,
-      },
-      token: 'the_token',
+    expect(result.data.data.login.user).to.be.deep.eq({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      birthdate: user.birthdate,
     });
 
+    const payload = verifyToken(result.data.data.login.token);
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+
     expect(result.data.data.login.token).to.be.a('string');
-    expect(result.data.data.login.token).to.have.lengthOf(128);
+    expect(result.data.data.login.token).to.have.lengthOf(187);
+    expect(payload).to.have.keys(['id', 'iat', 'exp']);
+    expect(payload['id']).to.be.eq(user.id);
+    expect(payload['exp']).to.be.eq(payload['iat'] + 86400);
+    expect(payload['exp']).to.be.gt(nowInSeconds);
   });
 
   it('should return an error for trying to sign in with an unregistered email.', async () => {

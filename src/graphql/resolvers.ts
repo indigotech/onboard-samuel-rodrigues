@@ -1,7 +1,14 @@
 import { hash } from 'bcrypt';
 import { User } from '../entity/User';
-import { emailAlreadyExists, validateEmail, validatePassword } from '../validators/validators';
-import { autenticateUser } from '../jwt';
+import {
+  comparePassword,
+  emailAlreadyExists,
+  validateEmail,
+  validateEmailLogin,
+  validatePassword,
+  validateToken,
+} from '../validators/validators';
+import { generateToken } from '../jwt';
 
 interface UserInput {
   name: string;
@@ -39,7 +46,13 @@ export const resolvers = {
     },
 
     login: async (_: any, args: { input: LoginInput }) => {
-      return await autenticateUser(args.input);
+      await validateEmailLogin(args.input.email);
+      const user = await User.findOneBy({ email: args.input.email });
+      await comparePassword(args.input.password, user.password);
+      const token = generateToken(user.id);
+      validateToken(token, user.id);
+
+      return { user, token };
     },
   },
 };
