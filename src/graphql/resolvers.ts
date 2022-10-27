@@ -9,6 +9,7 @@ import {
 } from '../validators/validators';
 import { generateToken } from '../jwt';
 import { LoginInput, UserInput } from '../interfaces/interfaces';
+import { CustomError } from '../errors/error-formatter';
 
 export const resolvers = {
   Query: {
@@ -17,7 +18,11 @@ export const resolvers = {
   },
 
   Mutation: {
-    createUser: async (_: any, args: { input: UserInput }) => {
+    createUser: async (_: any, args: { input: UserInput }, context) => {
+      if (!context.id) {
+        throw new CustomError('Invalid token', 401);
+      }
+
       validateEmail(args.input.email);
       validatePassword(args.input.password);
       await emailAlreadyExists(args.input.email);
@@ -33,7 +38,11 @@ export const resolvers = {
       return newUser;
     },
 
-    login: async (_: any, args: { input: LoginInput }) => {
+    login: async (_: any, args: { input: LoginInput }, context) => {
+      if (!context.id) {
+        throw new CustomError('Invalid token', 401);
+      }
+
       await validateEmailLogin(args.input.email);
       const user = await User.findOneBy({ email: args.input.email });
       await comparePassword(args.input.password, user.password);
