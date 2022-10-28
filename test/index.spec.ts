@@ -254,3 +254,65 @@ describe('Test login:', () => {
     ]);
   });
 });
+
+describe('Test query user:', () => {
+  const query = `query($id: String) {
+    user(id: $id) { id, name, email, birthdate }
+  }`;
+
+  const newUser = new User();
+  newUser.id = '00000000-0000-0000-0000-000000000000';
+  newUser.name = 'Default';
+  newUser.email = 'default@email.com';
+  newUser.password = hashSync('password123', 8);
+  newUser.birthdate = '01-01-2000';
+
+  let idInput: string;
+  let token: string;
+
+  beforeEach(async () => {
+    await User.save(newUser);
+    idInput = '00000000-0000-0000-0000-000000000000';
+    token = generateToken(idInput, false);
+  });
+
+  afterEach(async () => {
+    await User.delete({ email: newUser.email });
+  });
+
+  it('should return the user.', async () => {
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { id: idInput } },
+      { headers: { Authorization: token } },
+    );
+
+    const user = await User.findOneBy({ id: idInput });
+
+    expect(result.data.data.user.id).to.be.eq(idInput);
+
+    expect(result.data.data.user).to.be.deep.eq({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      birthdate: user.birthdate,
+    });
+  });
+
+  it('should return an error for searching for a user with non-existent id.', async () => {
+    idInput = '00000000-0000-0000-0000-000000000001';
+
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { id: idInput } },
+      { headers: { Authorization: token } },
+    );
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'User not found.',
+        code: 404,
+      },
+    ]);
+  });
+});

@@ -15,6 +15,19 @@ export const resolvers = {
   Query: {
     hello: () => 'Hello, world!',
     getUsers: async () => await User.find(),
+    user: async (_: any, args: { id: string }, context) => {
+      if (!context.id) {
+        throw new CustomError('Invalid token.', 401);
+      }
+
+      const user = await User.findOneBy({ id: args.id });
+
+      if (!user) {
+        throw new CustomError('User not found.', 404);
+      }
+
+      return user;
+    },
   },
 
   Mutation: {
