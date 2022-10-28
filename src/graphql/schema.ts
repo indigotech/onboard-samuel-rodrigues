@@ -5,6 +5,7 @@ export const typeDefs = gql`
     hello: String
     getUsers: [User]
     user(id: String): User
+    users(numberOfUsers: Int): [User]
   }
 
   type Mutation {
