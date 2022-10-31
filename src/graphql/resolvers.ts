@@ -37,12 +37,8 @@ export const resolvers = {
         order: {
           name: 'ASC',
         },
-        take: args.numberOfUsers || 5,
+        take: args.numberOfUsers ?? 5,
       });
-
-      if (users.length === 0) {
-        throw new CustomError('Users not found', 404);
-      }
 
       return users;
     },
