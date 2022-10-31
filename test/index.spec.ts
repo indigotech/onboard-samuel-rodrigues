@@ -158,8 +158,6 @@ describe('Test login:', () => {
       email: 'default@email.com',
       password: 'password123',
     };
-
-    token = generateToken('1', false);
   });
 
   afterEach(async () => {
@@ -167,11 +165,7 @@ describe('Test login:', () => {
   });
 
   it('should autenticate the user.', async () => {
-    const result = await connection.post(
-      '/graphql',
-      { query, variables: { input: loginInput } },
-      { headers: { Authorization: token } },
-    );
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
     const user = await User.findOneBy({ email: loginInput.email });
 
     expect(result.data.data.login.user).to.be.deep.eq({
@@ -195,11 +189,7 @@ describe('Test login:', () => {
   it('should autenticate the user with extended expiration time.', async () => {
     loginInput.rememberMe = true;
 
-    const result = await connection.post(
-      '/graphql',
-      { query, variables: { input: loginInput } },
-      { headers: { Authorization: token } },
-    );
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
     const user = await User.findOneBy({ email: loginInput.email });
 
     expect(result.data.data.login.user).to.be.deep.eq({
@@ -223,11 +213,7 @@ describe('Test login:', () => {
   it('should return an error for trying to sign in with an unregistered email.', async () => {
     loginInput.email = 'unregistered@email.com';
 
-    const result = await connection.post(
-      '/graphql',
-      { query, variables: { input: loginInput } },
-      { headers: { Authorization: token } },
-    );
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
 
     expect(result.data.errors).to.be.deep.eq([
       {
@@ -240,11 +226,7 @@ describe('Test login:', () => {
   it('should return an error for trying to sign in with an incorrect password.', async () => {
     loginInput.password = 'incorrect123';
 
-    const result = await connection.post(
-      '/graphql',
-      { query, variables: { input: loginInput } },
-      { headers: { Authorization: token } },
-    );
+    const result = await connection.post('/graphql', { query, variables: { input: loginInput } });
 
     expect(result.data.errors).to.be.deep.eq([
       {
