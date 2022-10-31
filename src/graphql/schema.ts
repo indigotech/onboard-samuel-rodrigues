@@ -5,7 +5,7 @@ export const typeDefs = gql`
     hello: String
     getUsers: [User]
     user(id: String): User
-    users(numberOfUsers: Int): [User]
+    users(input: UsersInput): UsersReturn
   }
 
   type Mutation {
@@ -36,5 +36,17 @@ export const typeDefs = gql`
   type Login {
     user: User
     token: String
+  }
+
+  input UsersInput {
+    numberOfUsers: Int
+    skip: Int
+  }
+
+  type UsersReturn {
+    users: [User]
+    totalUsers: Int
+    usersBefore: Int
+    usersAfter: Int
   }
 `;

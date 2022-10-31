@@ -6,6 +6,7 @@ import { User } from '../src/entity/User';
 import { compare, hashSync } from 'bcrypt';
 import { generateToken, verifyToken } from '../src/jwt';
 import { LoginInput, UserInput } from '../src/interfaces/interfaces';
+import { createRandomUsers } from '../seed/users-faker';
 
 dotenv.config({ path: './test.env' });
 
@@ -309,6 +310,100 @@ describe('Test query user:', () => {
       {
         message: 'Token not found.',
         code: 401,
+      },
+    ]);
+  });
+});
+
+describe('Test query users:', () => {
+  const query = `query($input: UsersInput) {
+    users(input: $input) {
+      users { id, name, email, birthdate }
+      totalUsers
+      usersBefore
+      usersAfter
+    }
+  }`;
+
+  let allUsers: User[];
+  let token: string;
+
+  beforeEach(async () => {
+    allUsers = await createRandomUsers(50);
+    token = generateToken('00000000-0000-0000-0000-0000000000000000', false);
+  });
+
+  afterEach(async () => {
+    await User.delete(allUsers.map((user) => user.id));
+  });
+
+  it('should return users.', async () => {
+    const input = {
+      numberOfUsers: 10,
+      skip: 5,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    result.users.map((user) => expect(user).to.have.keys(['id', 'name', 'email', 'birthdate']));
+    expect(result.users).to.have.lengthOf(10);
+    expect(result.totalUsers).to.be.eq(50);
+    expect(result.usersBefore).to.be.eq(5);
+    expect(result.usersAfter).to.be.deep.eq(35);
+  });
+
+  it('should return an error when numberOfUsers is negative.', async () => {
+    const input = {
+      numberOfUsers: -1,
+      skip: 5,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.errors;
+
+    expect(result).to.be.deep.eq([
+      {
+        message: 'numberOfUsers can not be negative.',
+        code: 400,
+      },
+    ]);
+  });
+
+  it('should return an error when skip is negative.', async () => {
+    const input = {
+      numberOfUsers: 10,
+      skip: -5,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.errors;
+
+    expect(result).to.be.deep.eq([
+      {
+        message: 'skip can not be negative.',
+        code: 400,
+      },
+    ]);
+  });
+
+  it('should return an error when skip is greater or equal to total of users.', async () => {
+    const input = {
+      numberOfUsers: 10,
+      skip: 50,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.errors;
+
+    expect(result).to.be.deep.eq([
+      {
+        message: 'skip can not be greater than or equal to total of users.',
+        code: 400,
       },
     ]);
   });

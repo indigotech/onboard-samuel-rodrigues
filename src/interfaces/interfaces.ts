@@ -10,3 +10,8 @@ export interface LoginInput {
   password: string;
   rememberMe?: boolean;
 }
+
+export interface UsersInput {
+  numberOfUsers?: number;
+  skip?: number;
+}
