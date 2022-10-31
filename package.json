@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "test": "mocha -r ts-node/register test/**/*.spec.ts",
-    "seed": "ts-node seed/users-faker.ts"
+    "seed": "ts-node seed/generate-users.ts"
   },
   "repository": {
     "type": "git",

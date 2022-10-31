@@ -1,12 +1,6 @@
-import * as dotenv from 'dotenv';
 import { faker } from '@faker-js/faker';
 import { hashSync } from 'bcrypt';
-import { AppDataSource } from '../src/data-source';
 import { User } from '../src/entity/User';
-import { startServer } from '../src/start-server';
-
-dotenv.config({ path: './test.env' });
-startServer();
 
 faker.locale = 'pt_BR';
 
@@ -21,12 +15,12 @@ function createRandomUser(): User {
   return user;
 }
 
-async function createRandomUsers(numberOfUsers: number) {
-  await AppDataSource.initialize();
+export async function createRandomUsers(numberOfUsers: number) {
+  const users: User[] = [];
 
   for (let i = 0; i < numberOfUsers; i++) {
-    await User.save(createRandomUser());
+    users.push(createRandomUser());
   }
-}
 
-createRandomUsers(50);
+  await User.save(users);
+}
