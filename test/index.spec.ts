@@ -271,8 +271,6 @@ describe('Test query user:', () => {
 
     const user = await User.findOneBy({ id: idInput });
 
-    expect(result.data.data.user.id).to.be.eq(idInput);
-
     expect(result.data.data.user).to.be.deep.eq({
       id: user.id,
       name: user.name,
