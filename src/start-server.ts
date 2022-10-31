@@ -1,9 +1,20 @@
 import { ApolloServer } from 'apollo-server';
 import { AppDataSource, createDataSource } from './data-source';
-import { CustomError, formatError } from './errors/error-formatter';
+import { formatError } from './errors/error-formatter';
 import { resolvers } from './graphql/resolvers';
 import { typeDefs } from './graphql/schema';
 import { verifyToken } from './jwt';
+
+function context({ req }) {
+  let id: string;
+  const token = req.headers.authorization;
+  if (token) {
+    const payload = verifyToken(token);
+    id = payload.id;
+  }
+
+  return { id };
+}
 
 export async function startServer() {
   createDataSource();
@@ -12,21 +23,7 @@ export async function startServer() {
     typeDefs,
     resolvers,
     formatError,
-    context: ({ req }) => {
-      let id: string;
-      const token = req.headers.authorization;
-      if (token) {
-        try {
-          const payload = verifyToken(token);
-          id = payload.id;
-        } catch (e) {
-          console.log(e);
-          throw new CustomError('Invalid token', 401);
-        }
-      }
-
-      return { id };
-    },
+    context,
   });
   const { url } = await server.listen({ port: process.env.PORT || 4000 });
   console.log(`Server listening at ${url}`);
