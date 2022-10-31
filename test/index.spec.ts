@@ -297,4 +297,21 @@ describe('Test query user:', () => {
       },
     ]);
   });
+
+  it('should return an error when the user is not authenticated.', async () => {
+    token = '';
+
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { id: idInput } },
+      { headers: { Authorization: token } },
+    );
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'Token not found.',
+        code: 401,
+      },
+    ]);
+  });
 });

@@ -17,7 +17,7 @@ export const resolvers = {
     getUsers: async () => await User.find(),
     user: async (_: any, args: { id: string }, context) => {
       if (!context.id) {
-        throw new CustomError('Invalid token.', 401);
+        throw new CustomError('Token not found.', 401);
       }
 
       const user = await User.findOneBy({ id: args.id });
