@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany } from 'typeorm';
+import { Address } from './Address';
 
 @Entity()
 export class User extends BaseEntity {
@@ -16,4 +17,7 @@ export class User extends BaseEntity {
 
   @Column()
   birthdate: string;
+
+  @OneToMany(() => Address, (address) => address.user)
+  address: Address;
 }
