@@ -33,8 +33,8 @@ export const resolvers = {
         throw new CustomError('Invalid token.', 401);
       }
 
-      if (args.input.numberOfUsers < 0) {
-        throw new CustomError('numberOfUsers can not be negative.', 400);
+      if (args.input.numberOfUsers <= 0) {
+        throw new CustomError('numberOfUsers must be positive.', 400);
       }
 
       if (args.input.skip < 0) {
@@ -45,21 +45,20 @@ export const resolvers = {
         order: {
           name: 'ASC',
         },
-        take: args.input.numberOfUsers || 5,
-        skip: args.input.skip || 0,
+        take: args.input.numberOfUsers ?? 5,
+        skip: args.input.skip ?? 0,
       });
 
-      if (args.input.skip >= totalUsers) {
-        throw new CustomError('skip can not be greater than or equal to total of users.', 400);
-      }
+      const numberOfUsers = args.input.numberOfUsers ?? 5;
+      const skip = args.input.skip ?? 0;
 
-      const usersBefore = args.input.skip;
-      const usersAfter = totalUsers - args.input.skip - args.input.numberOfUsers;
+      const usersBefore = skip;
+      const usersAfter = totalUsers - skip - numberOfUsers;
 
       return {
         users,
         totalUsers,
-        usersBefore,
+        usersBefore: usersBefore > totalUsers ? totalUsers : usersBefore,
         usersAfter: usersAfter < 0 ? 0 : usersAfter,
       };
     },
