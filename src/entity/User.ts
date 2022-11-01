@@ -19,5 +19,5 @@ export class User extends BaseEntity {
   birthdate: string;
 
   @OneToMany(() => Address, (address) => address.user)
-  address: Address;
+  addresses: Address[];
 }

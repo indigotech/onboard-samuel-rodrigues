@@ -3,7 +3,7 @@ import { User } from './User';
 
 @Entity()
 export class Address extends BaseEntity {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column()
@@ -27,6 +27,6 @@ export class Address extends BaseEntity {
   @Column()
   state: string;
 
-  @ManyToOne(() => User, (user) => user.address)
+  @ManyToOne(() => User, (user) => user.addresses)
   user: User;
 }
