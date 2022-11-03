@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { startServer } from '../src/start-server';
 import { User } from '../src/entity/User';
 import { compare, hashSync } from 'bcrypt';
-import { verifyToken } from '../src/jwt';
+import { generateToken, verifyToken } from '../src/jwt';
 import { LoginInput, UserInput } from '../src/interfaces/interfaces';
 
 dotenv.config({ path: './test.env' });
@@ -34,6 +34,7 @@ describe('Test createUser:', () => {
   }`;
 
   let userInput: UserInput;
+  let token: string;
 
   beforeEach(() => {
     userInput = {
@@ -42,11 +43,17 @@ describe('Test createUser:', () => {
       password: 'password123',
       birthdate: '01-01-2000',
     };
+
+    token = generateToken('1', false);
   });
 
   it('should insert a user into the database.', async () => {
     const result = await (
-      await connection.post('/graphql', { query, variables: { input: userInput } })
+      await connection.post(
+        '/graphql',
+        { query, variables: { input: userInput } },
+        { headers: { Authorization: token } },
+      )
     ).data.data.createUser;
     const user = await User.findOneBy({ email: userInput.email });
 
@@ -70,7 +77,11 @@ describe('Test createUser:', () => {
   it('should return an error for trying to create a user with an email that does not meet the requirements.', async () => {
     userInput.email = 'invalid&format@email.com';
 
-    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { input: userInput } },
+      { headers: { Authorization: token } },
+    );
 
     expect(result.data.errors).to.be.deep.eq([
       {
@@ -83,7 +94,11 @@ describe('Test createUser:', () => {
   it('should return an error for trying to create a user with a password that does not meet the requirements.', async () => {
     userInput.password = 'wrong';
 
-    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { input: userInput } },
+      { headers: { Authorization: token } },
+    );
 
     expect(result.data.errors).to.be.deep.eq([
       {
@@ -102,7 +117,11 @@ describe('Test createUser:', () => {
 
     await User.save(newUser);
 
-    const result = await connection.post('/graphql', { query, variables: { input: userInput } });
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { input: userInput } },
+      { headers: { Authorization: token } },
+    );
 
     await User.delete({ email: newUser.email });
 
@@ -130,6 +149,7 @@ describe('Test login:', () => {
   newUser.birthdate = '01-01-2000';
 
   let loginInput: LoginInput;
+  let token: string;
 
   beforeEach(async () => {
     await User.save(newUser);
@@ -211,6 +231,83 @@ describe('Test login:', () => {
     expect(result.data.errors).to.be.deep.eq([
       {
         message: 'Email or password is incorrect.',
+        code: 401,
+      },
+    ]);
+  });
+});
+
+describe('Test query user:', () => {
+  const query = `query($id: String) {
+    user(id: $id) { id, name, email, birthdate }
+  }`;
+
+  const newUser = new User();
+  newUser.id = '00000000-0000-0000-0000-000000000000';
+  newUser.name = 'Default';
+  newUser.email = 'default@email.com';
+  newUser.password = hashSync('password123', 8);
+  newUser.birthdate = '01-01-2000';
+
+  let idInput: string;
+  let token: string;
+
+  beforeEach(async () => {
+    await User.save(newUser);
+    idInput = '00000000-0000-0000-0000-000000000000';
+    token = generateToken(idInput, false);
+  });
+
+  afterEach(async () => {
+    await User.delete({ email: newUser.email });
+  });
+
+  it('should return the user.', async () => {
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { id: idInput } },
+      { headers: { Authorization: token } },
+    );
+
+    const user = await User.findOneBy({ id: idInput });
+
+    expect(result.data.data.user).to.be.deep.eq({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      birthdate: user.birthdate,
+    });
+  });
+
+  it('should return an error for searching for a user with non-existent id.', async () => {
+    idInput = '00000000-0000-0000-0000-000000000001';
+
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { id: idInput } },
+      { headers: { Authorization: token } },
+    );
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'User not found.',
+        code: 404,
+      },
+    ]);
+  });
+
+  it('should return an error when the user is not authenticated.', async () => {
+    token = '';
+
+    const result = await connection.post(
+      '/graphql',
+      { query, variables: { id: idInput } },
+      { headers: { Authorization: token } },
+    );
+
+    expect(result.data.errors).to.be.deep.eq([
+      {
+        message: 'Token not found.',
         code: 401,
       },
     ]);

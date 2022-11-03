@@ -9,15 +9,33 @@ import {
 } from '../validators/validators';
 import { generateToken } from '../jwt';
 import { LoginInput, UserInput } from '../interfaces/interfaces';
+import { CustomError } from '../errors/error-formatter';
 
 export const resolvers = {
   Query: {
     hello: () => 'Hello, world!',
     getUsers: async () => await User.find(),
+    user: async (_: any, args: { id: string }, context) => {
+      if (!context.id) {
+        throw new CustomError('Token not found.', 401);
+      }
+
+      const user = await User.findOneBy({ id: args.id });
+
+      if (!user) {
+        throw new CustomError('User not found.', 404);
+      }
+
+      return user;
+    },
   },
 
   Mutation: {
-    createUser: async (_: any, args: { input: UserInput }) => {
+    createUser: async (_: any, args: { input: UserInput }, context) => {
+      if (!context.id) {
+        throw new CustomError('Invalid token', 401);
+      }
+
       validateEmail(args.input.email);
       validatePassword(args.input.password);
       await emailAlreadyExists(args.input.email);
