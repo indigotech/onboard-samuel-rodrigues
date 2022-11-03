@@ -6,6 +6,7 @@ import { User } from '../src/entity/User';
 import { compare, hashSync } from 'bcrypt';
 import { generateToken, verifyToken } from '../src/jwt';
 import { LoginInput, UserInput } from '../src/interfaces/interfaces';
+import { createRandomUsers } from '../seed/users-faker';
 
 dotenv.config({ path: './test.env' });
 
@@ -149,7 +150,6 @@ describe('Test login:', () => {
   newUser.birthdate = '01-01-2000';
 
   let loginInput: LoginInput;
-  let token: string;
 
   beforeEach(async () => {
     await User.save(newUser);
@@ -309,6 +309,251 @@ describe('Test query user:', () => {
       {
         message: 'Token not found.',
         code: 401,
+      },
+    ]);
+  });
+});
+
+describe('Test query users:', () => {
+  const query = `query($input: UsersInput) {
+    users(input: $input) {
+      users { id, name, email, birthdate }
+      totalUsers
+      usersBefore
+      usersAfter
+    }
+  }`;
+
+  let allUsers: User[];
+  let token: string;
+
+  beforeEach(async () => {
+    allUsers = await createRandomUsers(50);
+    token = generateToken('00000000-0000-0000-0000-0000000000000000', false);
+  });
+
+  afterEach(async () => {
+    await User.delete(allUsers.map((user) => user.id));
+  });
+
+  it('should return users.', async () => {
+    const input = {
+      numberOfUsers: 10,
+      skip: 5,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    const users = await User.find({ order: { name: 'ASC' } });
+
+    let index = input.skip;
+    result.users.forEach((user) => {
+      expect(user).to.be.deep.eq({
+        id: users[index].id,
+        name: users[index].name,
+        email: users[index].email,
+        birthdate: users[index].birthdate,
+      });
+      index++;
+    });
+
+    expect(result.users).to.have.lengthOf(10);
+    expect(result.totalUsers).to.be.deep.eq(50);
+    expect(result.usersBefore).to.be.deep.eq(5);
+    expect(result.usersAfter).to.be.deep.eq(35);
+  });
+
+  it('should return users even without the numberOfUsers parameter.', async () => {
+    const input = {
+      skip: 10,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    const users = await User.find({ order: { name: 'ASC' } });
+
+    let index = input.skip;
+    result.users.forEach((user) => {
+      expect(user).to.be.deep.eq({
+        id: users[index].id,
+        name: users[index].name,
+        email: users[index].email,
+        birthdate: users[index].birthdate,
+      });
+      index++;
+    });
+
+    expect(result.users).to.have.lengthOf(5);
+    expect(result.totalUsers).to.be.deep.eq(50);
+    expect(result.usersBefore).to.be.deep.eq(10);
+    expect(result.usersAfter).to.be.deep.eq(35);
+  });
+
+  it('should return users even without the skip parameter.', async () => {
+    const input = {
+      numberOfUsers: 10,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    const users = await User.find({ order: { name: 'ASC' } });
+
+    let index = 0;
+    result.users.forEach((user) => {
+      expect(user).to.be.deep.eq({
+        id: users[index].id,
+        name: users[index].name,
+        email: users[index].email,
+        birthdate: users[index].birthdate,
+      });
+      index++;
+    });
+
+    expect(result.users).to.have.lengthOf(10);
+    expect(result.totalUsers).to.be.deep.eq(50);
+    expect(result.usersBefore).to.be.deep.eq(0);
+    expect(result.usersAfter).to.be.deep.eq(40);
+  });
+
+  it('should return users even without parameters.', async () => {
+    const input = {};
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    const users = await User.find({ order: { name: 'ASC' } });
+
+    let index = 0;
+    result.users.forEach((user) => {
+      expect(user).to.be.deep.eq({
+        id: users[index].id,
+        name: users[index].name,
+        email: users[index].email,
+        birthdate: users[index].birthdate,
+      });
+      index++;
+    });
+
+    expect(result.users).to.have.lengthOf(5);
+    expect(result.totalUsers).to.be.deep.eq(50);
+    expect(result.usersBefore).to.be.deep.eq(0);
+    expect(result.usersAfter).to.be.deep.eq(45);
+  });
+
+  it('should return users even when numberOfUsers is greater than the amount of remaining users.', async () => {
+    const input = {
+      numberOfUsers: 10,
+      skip: 45,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    const users = await User.find({ order: { name: 'ASC' } });
+
+    let index = input.skip;
+    result.users.forEach((user) => {
+      expect(user).to.be.deep.eq({
+        id: users[index].id,
+        name: users[index].name,
+        email: users[index].email,
+        birthdate: users[index].birthdate,
+      });
+      index++;
+    });
+
+    expect(result.users).to.have.lengthOf(5);
+    expect(result.totalUsers).to.be.deep.eq(50);
+    expect(result.usersBefore).to.be.deep.eq(45);
+    expect(result.usersAfter).to.be.deep.eq(0);
+  });
+
+  it('should return users if skip is less than the total number of users and numberOfUsers is greater than 0.', async () => {
+    const input = {
+      numberOfUsers: 60,
+      skip: 45,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    const users = await User.find({ order: { name: 'ASC' } });
+
+    let index = input.skip;
+    result.users.forEach((user) => {
+      expect(user).to.be.deep.eq({
+        id: users[index].id,
+        name: users[index].name,
+        email: users[index].email,
+        birthdate: users[index].birthdate,
+      });
+      index++;
+    });
+
+    expect(result.users).to.have.lengthOf(5);
+    expect(result.totalUsers).to.be.deep.eq(50);
+    expect(result.usersBefore).to.be.deep.eq(45);
+    expect(result.usersAfter).to.be.deep.eq(0);
+  });
+
+  it('should return no user when skip is greater than or equal to the total number of users.', async () => {
+    const input = {
+      numberOfUsers: 10,
+      skip: 50,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.data.users;
+
+    expect(result.users).to.be.deep.eq([]);
+    expect(result.users).to.have.lengthOf(0);
+    expect(result.totalUsers).to.be.deep.eq(50);
+    expect(result.usersBefore).to.be.deep.eq(50);
+    expect(result.usersAfter).to.be.deep.eq(0);
+  });
+
+  it('should return an error when numberOfUsers is less than or equal to 0.', async () => {
+    const input = {
+      numberOfUsers: -1,
+      skip: 5,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.errors;
+
+    expect(result).to.be.deep.eq([
+      {
+        message: 'numberOfUsers must be positive.',
+        code: 400,
+      },
+    ]);
+  });
+
+  it('should return an error when skip is negative.', async () => {
+    const input = {
+      numberOfUsers: 10,
+      skip: -5,
+    };
+
+    const result = await (
+      await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
+    ).data.errors;
+
+    expect(result).to.be.deep.eq([
+      {
+        message: 'skip can not be negative.',
+        code: 400,
       },
     ]);
   });

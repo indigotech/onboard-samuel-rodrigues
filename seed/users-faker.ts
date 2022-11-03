@@ -22,5 +22,5 @@ export async function createRandomUsers(numberOfUsers: number) {
     users.push(createRandomUser());
   }
 
-  await User.save(users);
+  return User.save(users);
 }

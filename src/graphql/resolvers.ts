@@ -8,7 +8,7 @@ import {
   validatePassword,
 } from '../validators/validators';
 import { generateToken } from '../jwt';
-import { LoginInput, UserInput } from '../interfaces/interfaces';
+import { LoginInput, UserInput, UsersInput } from '../interfaces/interfaces';
 import { CustomError } from '../errors/error-formatter';
 
 export const resolvers = {
@@ -28,19 +28,39 @@ export const resolvers = {
 
       return user;
     },
-    users: async (_: any, args: { numberOfUsers?: number }, context) => {
+    users: async (_: any, args: { input?: UsersInput }, context) => {
       if (!context.id) {
         throw new CustomError('Invalid token.', 401);
       }
 
-      const users = await User.find({
+      if (args.input.numberOfUsers <= 0) {
+        throw new CustomError('numberOfUsers must be positive.', 400);
+      }
+
+      if (args.input.skip < 0) {
+        throw new CustomError('skip can not be negative.', 400);
+      }
+
+      const [users, totalUsers] = await User.findAndCount({
         order: {
           name: 'ASC',
         },
-        take: args.numberOfUsers ?? 5,
+        take: args.input.numberOfUsers ?? 5,
+        skip: args.input.skip ?? 0,
       });
 
-      return users;
+      const numberOfUsers = args.input.numberOfUsers ?? 5;
+      const skip = args.input.skip ?? 0;
+
+      const usersBefore = skip;
+      const usersAfter = totalUsers - skip - numberOfUsers;
+
+      return {
+        users,
+        totalUsers,
+        usersBefore: usersBefore > totalUsers ? totalUsers : usersBefore,
+        usersAfter: usersAfter < 0 ? 0 : usersAfter,
+      };
     },
   },
 
