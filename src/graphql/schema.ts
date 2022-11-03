@@ -25,7 +25,7 @@ export const typeDefs = gql`
     name: String!
     email: String!
     birthdate: String!
-    address: [Address]
+    addresses: [Address]
   }
 
   input LoginInput {
