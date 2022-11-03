@@ -3,7 +3,7 @@ import { User } from './User';
 
 @Entity()
 export class Address extends BaseEntity {
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()

@@ -11,7 +11,6 @@ export const typeDefs = gql`
   type Mutation {
     createUser(input: UserInput!): User!
     login(input: LoginInput): Login!
-    addAddress(input: AddressInput): Address!
   }
 
   input UserInput {
@@ -61,16 +60,5 @@ export const typeDefs = gql`
     neighborhood: String!
     city: String!
     state: String!
-  }
-
-  input AddressInput {
-    postalCode: String!
-    street: String!
-    streetNumber: Int!
-    complement: String
-    neighborhood: String!
-    city: String!
-    state: String!
-    userEmail: String!
   }
 `;

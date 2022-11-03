@@ -8,9 +8,8 @@ import {
   validatePassword,
 } from '../validators/validators';
 import { generateToken } from '../jwt';
-import { AddressInput, LoginInput, UserInput, UsersInput } from '../interfaces/interfaces';
+import { LoginInput, UserInput, UsersInput } from '../interfaces/interfaces';
 import { CustomError } from '../errors/error-formatter';
-import { Address } from '../entity/Address';
 
 export const resolvers = {
   Query: {
@@ -93,34 +92,6 @@ export const resolvers = {
       const token = generateToken(user.id, args.input.rememberMe);
 
       return { user, token };
-    },
-
-    addAddress: async (_: any, args: { input: AddressInput }, context) => {
-      if (!context.id) {
-        throw new CustomError('Invalid token', 401);
-      }
-
-      const user = await User.findOne({ where: { email: args.input.userEmail }, relations: { addresses: true } });
-
-      if (!user) {
-        throw new CustomError('User not found!', 404);
-      }
-
-      const newAddress = new Address();
-      newAddress.postalCode = args.input.postalCode;
-      newAddress.street = args.input.street;
-      newAddress.streetNumber = args.input.streetNumber;
-      newAddress.complement = args.input.complement;
-      newAddress.neighborhood = args.input.neighborhood;
-      newAddress.city = args.input.city;
-      newAddress.state = args.input.state;
-
-      const address = await Address.save(newAddress);
-
-      user.addresses.push(address);
-      await User.save(user);
-
-      return address;
     },
   },
 };
