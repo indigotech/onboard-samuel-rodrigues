@@ -28,6 +28,20 @@ export const resolvers = {
 
       return user;
     },
+    users: async (_: any, args: { numberOfUsers?: number }, context) => {
+      if (!context.id) {
+        throw new CustomError('Invalid token.', 401);
+      }
+
+      const users = await User.find({
+        order: {
+          name: 'ASC',
+        },
+        take: args.numberOfUsers ?? 5,
+      });
+
+      return users;
+    },
   },
 
   Mutation: {
