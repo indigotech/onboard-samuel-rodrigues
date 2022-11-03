@@ -349,7 +349,7 @@ describe('Test query users:', () => {
     const users = await User.find({ order: { name: 'ASC' } });
 
     let index = input.skip;
-    result.users.map((user) => {
+    result.users.forEach((user) => {
       expect(user).to.be.deep.eq({
         id: users[index].id,
         name: users[index].name,
@@ -377,7 +377,7 @@ describe('Test query users:', () => {
     const users = await User.find({ order: { name: 'ASC' } });
 
     let index = input.skip;
-    result.users.map((user) => {
+    result.users.forEach((user) => {
       expect(user).to.be.deep.eq({
         id: users[index].id,
         name: users[index].name,
@@ -405,7 +405,7 @@ describe('Test query users:', () => {
     const users = await User.find({ order: { name: 'ASC' } });
 
     let index = 0;
-    result.users.map((user) => {
+    result.users.forEach((user) => {
       expect(user).to.be.deep.eq({
         id: users[index].id,
         name: users[index].name,
@@ -431,7 +431,7 @@ describe('Test query users:', () => {
     const users = await User.find({ order: { name: 'ASC' } });
 
     let index = 0;
-    result.users.map((user) => {
+    result.users.forEach((user) => {
       expect(user).to.be.deep.eq({
         id: users[index].id,
         name: users[index].name,
@@ -460,7 +460,7 @@ describe('Test query users:', () => {
     const users = await User.find({ order: { name: 'ASC' } });
 
     let index = input.skip;
-    result.users.map((user) => {
+    result.users.forEach((user) => {
       expect(user).to.be.deep.eq({
         id: users[index].id,
         name: users[index].name,
@@ -489,7 +489,7 @@ describe('Test query users:', () => {
     const users = await User.find({ order: { name: 'ASC' } });
 
     let index = input.skip;
-    result.users.map((user) => {
+    result.users.forEach((user) => {
       expect(user).to.be.deep.eq({
         id: users[index].id,
         name: users[index].name,
