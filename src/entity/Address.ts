@@ -27,6 +27,6 @@ export class Address extends BaseEntity {
   @Column()
   state: string;
 
-  @ManyToOne(() => User, (user) => user.addresses)
+  @ManyToOne(() => User, (user) => user.addresses, { cascade: true, onDelete: 'CASCADE' })
   user: User;
 }

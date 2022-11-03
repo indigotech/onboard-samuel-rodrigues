@@ -6,7 +6,8 @@ import { User } from '../src/entity/User';
 import { compare, hashSync } from 'bcrypt';
 import { generateToken, verifyToken } from '../src/jwt';
 import { LoginInput, UserInput } from '../src/interfaces/interfaces';
-import { createRandomUsers } from '../seed/users-faker';
+import { createRandomAddress, createRandomUsers } from '../seed/users-faker';
+import { Address } from '../src/entity/Address';
 
 dotenv.config({ path: './test.env' });
 
@@ -237,9 +238,15 @@ describe('Test login:', () => {
   });
 });
 
-describe('Test query user:', () => {
+describe('Test query user:', async () => {
   const query = `query($id: String) {
-    user(id: $id) { id, name, email, birthdate }
+    user(id: $id) {
+      id
+      name
+      email
+      birthdate
+      addresses { id, postalCode, street, streetNumber, complement, neighborhood, city, state }
+    }
   }`;
 
   const newUser = new User();
@@ -253,6 +260,8 @@ describe('Test query user:', () => {
   let token: string;
 
   beforeEach(async () => {
+    const newAddress = await Address.save([createRandomAddress(), createRandomAddress()]);
+    newUser.addresses = newAddress;
     await User.save(newUser);
     idInput = '00000000-0000-0000-0000-000000000000';
     token = generateToken(idInput, false);
@@ -263,19 +272,20 @@ describe('Test query user:', () => {
   });
 
   it('should return the user.', async () => {
-    const result = await connection.post(
-      '/graphql',
-      { query, variables: { id: idInput } },
-      { headers: { Authorization: token } },
-    );
+    const result = await (
+      await connection.post('/graphql', { query, variables: { id: idInput } }, { headers: { Authorization: token } })
+    ).data.data.user;
 
-    const user = await User.findOneBy({ id: idInput });
+    result.addresses.forEach((address) => (address.user = undefined));
 
-    expect(result.data.data.user).to.be.deep.eq({
+    const user = await User.findOne({ where: { id: idInput }, relations: { addresses: true } });
+
+    expect(result).to.be.deep.eq({
       id: user.id,
       name: user.name,
       email: user.email,
       birthdate: user.birthdate,
+      addresses: user.addresses,
     });
   });
 
@@ -316,13 +326,19 @@ describe('Test query user:', () => {
 
 describe('Test query users:', () => {
   const query = `query($input: UsersInput) {
-    users(input: $input) {
-      users { id, name, email, birthdate }
-      totalUsers
-      usersBefore
-      usersAfter
+  users(input: $input) {
+    users {
+      id
+      name
+      email
+      birthdate
+      addresses { id, postalCode, street, streetNumber, complement, neighborhood, city, state }
     }
-  }`;
+    totalUsers
+    usersBefore
+    usersAfter
+  }
+}`;
 
   let allUsers: User[];
   let token: string;
@@ -346,7 +362,7 @@ describe('Test query users:', () => {
       await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
     ).data.data.users;
 
-    const users = await User.find({ order: { name: 'ASC' } });
+    const users = await User.find({ order: { name: 'ASC' }, relations: { addresses: true } });
 
     let index = input.skip;
     result.users.forEach((user) => {
@@ -355,6 +371,7 @@ describe('Test query users:', () => {
         name: users[index].name,
         email: users[index].email,
         birthdate: users[index].birthdate,
+        addresses: users[index].addresses,
       });
       index++;
     });
@@ -374,7 +391,7 @@ describe('Test query users:', () => {
       await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
     ).data.data.users;
 
-    const users = await User.find({ order: { name: 'ASC' } });
+    const users = await User.find({ order: { name: 'ASC' }, relations: { addresses: true } });
 
     let index = input.skip;
     result.users.forEach((user) => {
@@ -383,6 +400,7 @@ describe('Test query users:', () => {
         name: users[index].name,
         email: users[index].email,
         birthdate: users[index].birthdate,
+        addresses: users[index].addresses,
       });
       index++;
     });
@@ -402,7 +420,7 @@ describe('Test query users:', () => {
       await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
     ).data.data.users;
 
-    const users = await User.find({ order: { name: 'ASC' } });
+    const users = await User.find({ order: { name: 'ASC' }, relations: { addresses: true } });
 
     let index = 0;
     result.users.forEach((user) => {
@@ -411,6 +429,7 @@ describe('Test query users:', () => {
         name: users[index].name,
         email: users[index].email,
         birthdate: users[index].birthdate,
+        addresses: users[index].addresses,
       });
       index++;
     });
@@ -428,7 +447,7 @@ describe('Test query users:', () => {
       await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
     ).data.data.users;
 
-    const users = await User.find({ order: { name: 'ASC' } });
+    const users = await User.find({ order: { name: 'ASC' }, relations: { addresses: true } });
 
     let index = 0;
     result.users.forEach((user) => {
@@ -437,6 +456,7 @@ describe('Test query users:', () => {
         name: users[index].name,
         email: users[index].email,
         birthdate: users[index].birthdate,
+        addresses: users[index].addresses,
       });
       index++;
     });
@@ -457,7 +477,7 @@ describe('Test query users:', () => {
       await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
     ).data.data.users;
 
-    const users = await User.find({ order: { name: 'ASC' } });
+    const users = await User.find({ order: { name: 'ASC' }, relations: { addresses: true } });
 
     let index = input.skip;
     result.users.forEach((user) => {
@@ -466,6 +486,7 @@ describe('Test query users:', () => {
         name: users[index].name,
         email: users[index].email,
         birthdate: users[index].birthdate,
+        addresses: users[index].addresses,
       });
       index++;
     });
@@ -486,7 +507,7 @@ describe('Test query users:', () => {
       await connection.post('/graphql', { query, variables: { input: input } }, { headers: { Authorization: token } })
     ).data.data.users;
 
-    const users = await User.find({ order: { name: 'ASC' } });
+    const users = await User.find({ order: { name: 'ASC' }, relations: { addresses: true } });
 
     let index = input.skip;
     result.users.forEach((user) => {
@@ -495,6 +516,7 @@ describe('Test query users:', () => {
         name: users[index].name,
         email: users[index].email,
         birthdate: users[index].birthdate,
+        addresses: users[index].addresses,
       });
       index++;
     });

@@ -20,7 +20,7 @@ export const resolvers = {
         throw new CustomError('Token not found.', 401);
       }
 
-      const user = await User.findOneBy({ id: args.id });
+      const user = await User.findOne({ where: { id: args.id }, relations: { addresses: true } });
 
       if (!user) {
         throw new CustomError('User not found.', 404);
@@ -42,9 +42,8 @@ export const resolvers = {
       }
 
       const [users, totalUsers] = await User.findAndCount({
-        order: {
-          name: 'ASC',
-        },
+        order: { name: 'ASC' },
+        relations: { addresses: true },
         take: args.input.numberOfUsers ?? 5,
         skip: args.input.skip ?? 0,
       });
